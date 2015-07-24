@@ -16,21 +16,18 @@ get_routes() ->
 		end, Acc, RawModRoutes)
 	end, [], RoutableMods),
 
-	IndexRouteDir = application:get_env(gamerl, index_directory, {priv_dir, gamerl, <<"www">>}),
-	IndexRouteFile = application:get_env(gamerl, index_file, <<"index.html">>),
-	IndexRouteArgs = [
-		{directory, IndexRouteDir},
-		{file, IndexRouteFile},
-		{mimetypes, {{lngs_mime, from_path}, undefined}}
-	],
-	IndexRoute = {<<"/">>, cowboy_static, IndexRouteArgs},
+	MimeTypes = {mimetypes, cow_mimetypes, all},
+
+	IndexRouteFile = application:get_env(gamerl, index_file, {priv_dir, gamerl, <<"index.html">>}),
+	IndexRouteArgs = [ MimeTypes ],
+	IndexRoute = {<<"/">>, cowboy_static, erlang:append_element(IndexRouteFile, IndexRouteArgs)},
 
 	DefaultRouteDir = application:get_env(gamerl, default_directory, {priv_dir, gamerl, <<"www">>}),
 	DefaultRouteArgs = [
 		{directory, DefaultRouteDir},
 		{mimetypes, {{lngs_mime, from_path}, undefined}}
 	],
-	DefaultRoute = {<<"/[...]">>, cowboy_static, DefaultRouteArgs},
+	DefaultRoute = {<<"/[...]">>, cowboy_static, erlang:append_element(DefaultRouteDir, DefaultRouteArgs)},
 
 	AllRoutes = CustomRoutes ++ BuildinRoutes ++ [IndexRoute, DefaultRoute],
 	Host = application:get_env(gamerl, listen_host, '_'),
