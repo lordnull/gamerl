@@ -23,14 +23,14 @@ get_routes() ->
 		{file, IndexRouteFile},
 		{mimetypes, {{lngs_mime, from_path}, undefined}}
 	],
-	IndexRoute = {<<"/">>, cowoby_static, IndexRouteArgs},
+	IndexRoute = {<<"/">>, cowboy_static, IndexRouteArgs},
 
 	DefaultRouteDir = application:get_env(gamerl, default_directory, {priv_dir, gamerl, <<"www">>}),
 	DefaultRouteArgs = [
 		{directory, DefaultRouteDir},
 		{mimetypes, {{mvb_mime, from_path}, undefined}}
 	],
-	DefaultRoute = {<<"/[...]">>, cowoby_static, DefaultRouteArgs},
+	DefaultRoute = {<<"/[...]">>, cowboy_static, DefaultRouteArgs},
 
 	AllRoutes = CustomRoutes ++ BuildinRoutes ++ [IndexRoute, DefaultRoute],
 	Host = application:get_env(gamerl, listen_host, '_'),
