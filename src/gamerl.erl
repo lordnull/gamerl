@@ -18,7 +18,7 @@ get_routes() ->
 
 	MimeTypes = {mimetypes, cow_mimetypes, all},
 
-	IndexRouteFile = application:get_env(gamerl, index_file, {priv_dir, gamerl, <<"index.html">>}),
+	IndexRouteFile = application:get_env(gamerl, index_file, {priv_file, gamerl, <<"www/index.html">>}),
 	IndexRouteArgs = [ MimeTypes ],
 	IndexRoute = {<<"/">>, cowboy_static, erlang:append_element(IndexRouteFile, IndexRouteArgs)},
 
