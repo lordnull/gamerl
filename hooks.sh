@@ -1,5 +1,5 @@
 #!/bin/bash
-APPDIR="app/gamerl"
+APPDIR="."
 
 function pre_clean {
 	rm -f $APPDIR/include/commit_ver.hrl
