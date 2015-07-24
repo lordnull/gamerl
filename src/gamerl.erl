@@ -28,7 +28,7 @@ get_routes() ->
 	DefaultRouteDir = application:get_env(gamerl, default_directory, {priv_dir, gamerl, <<"www">>}),
 	DefaultRouteArgs = [
 		{directory, DefaultRouteDir},
-		{mimetypes, {{ings_mime, from_path}, undefined}}
+		{mimetypes, {{lngs_mime, from_path}, undefined}}
 	],
 	DefaultRoute = {<<"/[...]">>, cowboy_static, DefaultRouteArgs},
 
