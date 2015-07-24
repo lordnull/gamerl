@@ -23,10 +23,7 @@ get_routes() ->
 	IndexRoute = {<<"/">>, cowboy_static, erlang:append_element(IndexRouteFile, IndexRouteArgs)},
 
 	DefaultRouteDir = application:get_env(gamerl, default_directory, {priv_dir, gamerl, <<"www">>}),
-	DefaultRouteArgs = [
-		{directory, DefaultRouteDir},
-		{mimetypes, {{lngs_mime, from_path}, undefined}}
-	],
+	DefaultRouteArgs = [ MimeTypes ],
 	DefaultRoute = {<<"/[...]">>, cowboy_static, erlang:append_element(DefaultRouteDir, DefaultRouteArgs)},
 
 	AllRoutes = CustomRoutes ++ BuildinRoutes ++ [IndexRoute, DefaultRoute],
