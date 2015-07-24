@@ -1,0 +1,17 @@
+{application, gamerl,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  ssl,
+                  lager,
+                  ibrowse,
+                  ranch,
+                  cowboy
+                 ]},
+  {mod, { gamerl_app, []}},
+  {env, []}
+ ]}.

@@ -1,0 +1,34 @@
+# build artifacts
+ebin
+deps
+erl_crash.dump
+key
+key.pub
+mvb.crt
+mvb.csr
+rel/gamerl
+*.config
+app/gamerl/include/commit_ver.hrl
+app/gamerl/priv/www/js/bower_components
+app/gamerl/priv/www/css
+node_modules
+
+# run artifacts
+*.log
+Mnesia.*
+app/gamerl/priv/data
+
+# test artifacts
+.eunit
+
+# doc artifacts
+doc
+
+# editor/ide files
+*.swp
+*.swo
+.idea
+*.iml
+
+# OS X file system
+.DS_Store
