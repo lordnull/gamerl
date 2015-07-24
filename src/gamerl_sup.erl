@@ -44,12 +44,12 @@ init([]) ->
 		https ->
 			cowboy:start_https(gamer_listener, Listeners,
 				[ {port, ListenPort}, {keyfile, Keyfile}, {certfile, Certfile}],
-				[{env, [{dispath, CompiledDispatch}]}] 
+				[{env, [{dispatch, CompiledDispatch}]}] 
 			);
 		http ->
 			cowboy:start_http(gamer_listener, Listeners,
 				[ {port, ListenPort} ], 
-				[ {env, [{dispath, CompiledDispatch}]} ]
+				[ {env, [{dispatch, CompiledDispatch}]} ]
 			)
 	end,
 	Kids = [
