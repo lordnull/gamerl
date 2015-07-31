@@ -51,6 +51,9 @@ set_default(Directory) ->
 	ok = application:set_env(gamerl, default_directory, Directory),
 	update_cowboy_routes().
 
+set_routes(Modules) when is_list(Modules) ->
+	lists:foreach(fun set_routes/1, Modules);
+
 set_routes(Module) when is_atom(Module) ->
 	Routes = Module:routes(),
 	lists:foreach(fun
