@@ -1,6 +1,6 @@
 -module(gamerl).
 
--export([set_index/1, set_default/1]).
+-export([set_index/1, set_index/2, set_default/1, set_default/2]).
 -export([set_routes/1, set_route/2, set_route/3]).
 -export([get_routes/0, get_compiled_routes/0]).
 
@@ -47,8 +47,16 @@ set_index(File) when is_binary(File) ->
 	ok = application:set_env(gamerl, index_directory, Directory),
 	update_cowboy_routes().
 
+set_index(AppName, IndexFile) ->
+	ok = application:set_env(gamerl, index_file, {priv_file, AppName, IndexFile}),
+	update_cowboy_routes().
+
 set_default(Directory) ->
 	ok = application:set_env(gamerl, default_directory, Directory),
+	update_cowboy_routes().
+
+set_default(AppName, Directory) ->
+	ok = application:set_env(gamerl, default_directory, {priv_dir, AppName, Directory}),
 	update_cowboy_routes().
 
 set_routes(Modules) when is_list(Modules) ->
