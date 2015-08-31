@@ -1,8 +1,12 @@
 -module(lngs_http_auth).
 
 -export([routes/0]).
--export([init/3, rest_init/2, allowed_methods/2, is_authorized/2,
-	content_types_provided/2, content_types_accepted/2, from_json/2, to_js/2]).
+-export([init/2]).
+-export([
+	allowed_methods/2, is_authorized/2,
+	content_types_provided/2, content_types_accepted/2,
+	from_json/2, to_js/2
+]).
 
 routes() -> [<<"/js/conf.js">>, <<"/auth/login">>, <<"/auth.logout">>].
 
@@ -11,14 +15,11 @@ routes() -> [<<"/js/conf.js">>, <<"/auth/login">>, <<"/auth.logout">>].
 	action
 }).
 
-init(_Protos, _Req, _HostPort) ->
-	{upgrade, protocol, cowboy_rest}.
-
-rest_init(Req, []) ->
-	{ok, Session, Req1} = ssg_session:get_or_create(Req),
-	{Path, Req2} = cowboy_req:path(Req1),
-	lager:debug("path:  ~p", [Path]),
-	Action= case Path of
+init(Req, _Opts) ->
+	{ok, Session, Req1} = lngs_session:get_or_create(Req),
+	Path = cowboy_req:path(Req1),
+	lager:debug("path: ~p", [Path]),
+	Action = case Path of
 		<<"/auth/login">> ->
 			login;
 		<<"/auth/logout">> ->
@@ -28,7 +29,8 @@ rest_init(Req, []) ->
 		_ ->
 			undefined
 	end,
-	{ok, Req2, #ctx{session = Session, action = Action}}.
+	Ctx = #ctx{session = Session, action = Action},
+	{cowboy_rest, Req1, Ctx}.
 
 allowed_methods(Req, #ctx{action = conf} = Ctx) ->
 	{[<<"GET">>, <<"HEAD">>], Req, Ctx};
@@ -68,13 +70,13 @@ content_types_accepted(Req, Ctx) ->
 	{Types, Req, Ctx}.
 
 to_js(Req, #ctx{action = conf} = Ctx) ->
-	{ok, Session, Req1} = ssg_session:get_or_create(Req),
-	UserName = case ssg_session:get_user(Session) of
+	{ok, Session, Req1} = lngs_session:get_or_create(Req),
+	UserName = case lngs_session:get_user(Session) of
 		undefined -> <<"null">>;
 		UserRec -> <<"'", (UserRec:email())/binary, "'">>
 	end,
-	LoginUrl = ssg_util:make_url(["auth", "login"]),
-	LogoutUrl = ssg_util:make_url(["auth", "logout"]),
+	LoginUrl = lngs_util:make_url(["auth", "login"]),
+	LogoutUrl = lngs_util:make_url(["auth", "logout"]),
 	JsBase =
 		"define({~n"
 		"    'currentUser': ~s,~n"
@@ -86,12 +88,12 @@ to_js(Req, #ctx{action = conf} = Ctx) ->
 
 from_json(Req, #ctx{action = logout} = Ctx) ->
 	lager:debug("processing logout"),
-	Req1 = ssg_session:destroy(Req),
+	Req1 = lngs_session:destroy(Req),
 	{true, Req1, Ctx};
 
 from_json(Req, #ctx{session = Session, action = login} = Ctx) ->
 	lager:debug("processing login"),
-	BaseURL = ssg_util:make_url(),
+	BaseURL = lngs_util:make_url(),
 	{ok, Post, Req1} = cowboy_req:body(Req),
 	Json = jsx:to_term(Post),
 	lager:debug("Json term:  ~p", [Json]),
@@ -106,19 +108,19 @@ from_json(Req, #ctx{session = Session, action = login} = Ctx) ->
 			Email = proplists:get_value(<<"email">>, AssertedJson),
 			case proplists:get_value(<<"status">>, AssertedJson) of
 				<<"okay">> ->
-					{ok, Session1} = case ssg_data:t_search(ssg_rec_user, [{email, Email}]) of
+					{ok, Session1} = case lngs_data:t_search(lngs_rec_user, [{email, Email}]) of
 						{ok, []} ->
 							lager:info("Creating new user ~p", [Email]),
-							{ok, Userrec} = ssg_rec_user:new([{email, Email}]),
-							{ok, Userrec1} = ssg_data:t_save(Userrec),
-							ssg_session:set_user(Userrec1, Session);
+							{ok, Userrec} = lngs_rec_user:new([{email, Email}]),
+							{ok, Userrec1} = lngs_data:t_save(Userrec),
+							lngs_session:set_user(Userrec1, Session);
 						{ok, Userrecs} ->
 							[Userrec | Destroy] = lists:keysort(2, Userrecs),
 							spawn(fun() ->
-								[ssg_data:t_delete(R) || R <- Destroy]
+								[lngs_data:t_delete(R) || R <- Destroy]
 							end),
 							lager:debug("existant user ~p", [Userrec]),
-							ssg_session:set_user(Userrec, Session)
+							lngs_session:set_user(Userrec, Session)
 					end,
 					Req2 = cowboy_req:set_resp_body(Email, Req1),
 					{true, Req2, Ctx#ctx{session = Session1}};
