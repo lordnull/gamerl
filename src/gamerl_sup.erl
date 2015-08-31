@@ -42,12 +42,12 @@ init([]) ->
 	ListenProto = application:get_env(gamerl, listen_proto, UrlProto),
 	{ok, _} = case ListenProto of
 		https ->
-			cowboy:start_https(gamer_listener, Listeners,
+			cowboy:start_https(gamerl_listener, Listeners,
 				[ {port, ListenPort}, {keyfile, Keyfile}, {certfile, Certfile}],
 				[{env, [{dispatch, CompiledDispatch}]}] 
 			);
 		http ->
-			cowboy:start_http(gamer_listener, Listeners,
+			cowboy:start_http(gamerl_listener, Listeners,
 				[ {port, ListenPort} ], 
 				[ {env, [{dispatch, CompiledDispatch}]} ]
 			)
