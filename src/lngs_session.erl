@@ -2,6 +2,8 @@
 
 -behavior(gen_server).
 
+-define(COOKIE_NAME, <<"lngsid">>).
+
 -include_lib("stdlib/include/qlc.hrl").
 -type request_data() :: any().
 -type session_id() :: binary().
@@ -66,7 +68,7 @@ get_or_create(ReqData) ->
 	end.
 
 set_cookie(SessionId, Req) ->
-	cowboy_req:set_resp_cookie(<<"ssgsid">>, SessionId, [
+	cowboy_req:set_resp_cookie(?COOKIE_NAME, SessionId, [
 		{max_age, 60 * 60 *24 * 7},
 		{path, <<"/">>}
 	], Req).
@@ -91,8 +93,9 @@ get(Id) when is_binary(Id) ->
 	end;
 
 get(Req) ->
-	{Cookie, _Req1} = cowboy_req:cookie(<<"ssgsid">>, Req),
-	?MODULE:get(Cookie).
+	Cookies = cowboy_req:parse_cookies(Req),
+	MaybeValue = proplists:get_value(?COOKIE_NAME, Cookies),
+	?MODULE:get(MaybeValue).
 
 %% @doc Creates a new session in the ets table and returns it.  While the
 %% uuid's for the session are randomly generated, there is still a check
@@ -114,13 +117,8 @@ destroy(Id) when is_binary(Id) ->
 	ets:delete(?MODULE, Id);
 destroy(Id) when is_list(Id) ->
 	ets:delete(list_to_binary(Id));
-destroy(Req) when element(1, Req) =:= mochiweb_request ->
-	SessionId = wrq:get_cookie_value("ssgsid", Req),
-	?MODULE:destroy(SessionId),
-	{Header, Val} = mochiweb_cookies:cookie("ssgsid", "", [{path, "/"},{max_age, 0}]),
-	wrq:set_resp_header(Header, Val, Req);
 destroy(Req) ->
-	{SessionId, Req1} = cowboy_req:cookie(<<"ssgsid">>, Req),
+	{SessionId, Req1} = cowboy_req:cookie(?COOKIE_NAME, Req),
 	?MODULE:destroy(SessionId),
 	set_cookie(<<>>, Req1).
 
