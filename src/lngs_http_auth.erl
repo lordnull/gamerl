@@ -8,7 +8,7 @@
 	from_json/2, to_js/2
 ]).
 
-routes() -> [<<"/js/conf.js">>, <<"/auth/login">>, <<"/auth.logout">>].
+routes() -> [<<"/js/conf.js">>, <<"/auth/login">>, <<"/auth/logout">>].
 
 -record(ctx, {
 	session,

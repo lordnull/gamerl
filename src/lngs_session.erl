@@ -118,9 +118,14 @@ destroy(Id) when is_binary(Id) ->
 destroy(Id) when is_list(Id) ->
 	ets:delete(list_to_binary(Id));
 destroy(Req) ->
-	{SessionId, Req1} = cowboy_req:cookie(?COOKIE_NAME, Req),
-	?MODULE:destroy(SessionId),
-	set_cookie(<<>>, Req1).
+	Cookies = cowboy_req:parse_cookies(Req),
+	case proplists:get_value(?COOKIE_NAME, Cookies) of
+		undefined ->
+			ok;
+		Id ->
+			?MODULE:destroy(Id)
+	end,
+	set_cookie(<<>>, Req).
 
 %% @doc Extracts the id from a `session()'.
 -spec get_id(Session :: session()) -> binary().
