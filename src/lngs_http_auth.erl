@@ -95,16 +95,16 @@ from_json(Req, #ctx{session = Session, action = login} = Ctx) ->
 	lager:debug("processing login"),
 	BaseURL = lngs_util:make_url(),
 	{ok, Post, Req1} = cowboy_req:body(Req),
-	Json = jsx:to_term(Post),
+	Json = jsx:decode(Post),
 	lager:debug("Json term:  ~p", [Json]),
 	Assertion = proplists:get_value(<<"assertion">>, Json),
-	AssertBody = jsx:to_json([{<<"assertion">>, Assertion},
+	AssertBody = jsx:encode([{<<"assertion">>, Assertion},
 		{<<"audience">>, BaseURL}]),
 	Asserted = ibrowse:send_req("https://verifier.login.persona.org/verify",
 		[{"Content-Type", "application/json"}], post, AssertBody),
 	case Asserted of
 		{ok, "200", _Heads, AssertedBody} ->
-			AssertedJson = jsx:to_term(list_to_binary(AssertedBody)),
+			AssertedJson = jsx:decode(list_to_binary(AssertedBody)),
 			Email = proplists:get_value(<<"email">>, AssertedJson),
 			case proplists:get_value(<<"status">>, AssertedJson) of
 				<<"okay">> ->
