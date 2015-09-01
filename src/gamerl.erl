@@ -68,21 +68,36 @@ set_routes(Module) when is_atom(Module) ->
 		(ModuleRoute) when is_binary(ModuleRoute) ->
 			set_route(ModuleRoute, Module);
 		({RouteString, Args}) ->
-			set_route(RouteString, Module, Args)
+			set_route(RouteString, Module, Args);
+		({RouteString, Constraints, Args}) when is_list(Constraints) ->
+			set_route(RouteString, Constraints, Module, Args);
+		({RouteString, AltModule, Args}) when is_atom(AltModule) ->
+			set_route(RouteString, [], AltModule, Args);
+		({RouteString, Constraints, AltModule, Args}) ->
+			set_route(RouteString, Constraints, AltModule, Args)
 	end, Routes).
 
 set_route(RouteString, Module) ->
-	set_route(RouteString, Module, undefined).
+	set_route(RouteString, [], Module, undefined).
 
 set_route(RouteString, Module, Args) ->
+	set_route(RouteString, [], Module, Args).
+
+set_route(RouteString, Constraints, Module, Args) ->
 	CurrentRoutes = application:get_env(gamerl, routes, []),
-	Cleaned = case lists:keytake(RouteString, CurrentRoutes) of
+	Cleaned = case lists:keytake(RouteString, 1, CurrentRoutes) of
 		false ->
 			CurrentRoutes;
 		{value, _, New} ->
 			New
 	end,
-	NewRoutes = [{RouteString, Module, Args} | Cleaned],
+	RouteTuple = case Constraints of
+		[] ->
+			{RouteString, Module, Args};
+		_ ->
+			{RouteString, Constraints, Module, Args}
+	end,
+	NewRoutes = [RouteTuple | Cleaned],
 	ok = application:set_env(gamerl, routes, NewRoutes),
 	update_cowboy_routes().
 
