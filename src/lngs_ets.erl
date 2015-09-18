@@ -27,12 +27,12 @@ start_link(TableName) ->
 start_link(TableName, Options) ->
 	Tid = ets:new(TableName, Options),
 	Rec = #?MODULE{ets = Tid},
-	ssg_data:start_link(Rec).
+	lngs_data:start_link(Rec).
 
 start_link(ProcName, TableName, Options) ->
 	Tid = ets:new(TableName, Options),
 	Rec = #?MODULE{ets = Tid},
-	ssg_data:start_link(ProcName, Rec).
+	lngs_data:start_link(ProcName, Rec).
 	
 ets(Rec) ->
 	Rec#?MODULE.ets.
