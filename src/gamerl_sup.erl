@@ -53,6 +53,8 @@ init([]) ->
 			)
 	end,
 	Kids = [
+	
+		{lngs_pid_lookup, {lngs_pid_lookup, start_link, []}, permanent, 5000, worker, [lngs_pid_lookup]},
 
 		{lngs_dets, {lngs_dets, start_link, []}, permanent, 5000, worker, [lngs_dets]},
 
