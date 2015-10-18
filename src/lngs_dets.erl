@@ -12,7 +12,6 @@
 % gen_server
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
 	code_change/3]).
-% rpgb_gen_data
 -export([
   get_by_id/2,
   save/1,
@@ -170,15 +169,6 @@ code_change(_Meh, State, _Xtra) ->
 %% ====================================================================
 %% internal
 %% ====================================================================
-
-%get_field_names(rpgb_rec_user) -> record_info(fields, rpgb_rec_user);
-%get_field_names(rpgb_rec_user_group) -> record_info(fields, rpgb_rec_user_group);
-%get_field_names(rpgb_rec_battlemap) -> record_info(fields, rpgb_rec_battlemap);
-%get_field_names(rpgb_rec_layer) -> record_info(fields, rpgb_rec_layer);
-%get_field_names(rpgb_rec_zone) -> record_info(fields, rpgb_rec_zone);
-%get_field_names(rpgb_rec_combatant) -> record_info(fields, rpgb_rec_combatant);
-%get_field_names(rpgb_rec_character) -> record_info(fields, rpgb_rec_character);
-%get_field_names(rpgb_rec_friend) -> record_info(fields, rpgb_rec_friend).
 
 get_field_names(RecName) ->
 	RecName:field_names().

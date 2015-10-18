@@ -16,10 +16,9 @@
 }).
 
 routes() ->
-	Records = [ssg_rec_base_ship, ssg_rec_fleet,
-		ssg_rec_fleet_ship, ssg_rec_scenario, ssg_rec_weapon],
+	Records = [],
 	lists:map(fun(RecName) ->
-		"ssg_rec_" ++ ShortRecName = atom_to_list(RecName),
+		"lngs_rec_" ++ ShortRecName = atom_to_list(RecName),
 		BinRecName = list_to_binary(ShortRecName),
 		Path = <<"/", BinRecName/binary, "[/:id]">>,
 		{Path, RecName}
@@ -30,7 +29,7 @@ init(_Conn, _Req, _Opts) ->
 
 rest_init(Req, RecName) ->
 	lager:debug("rest action for ~p", [RecName]),
-	{ok, Session, Req1} = ssg_session:get_or_create(Req),
+	{ok, Session, Req1} = lngs_session:get_or_create(Req),
 	{Id, Req2} = cowboy_req:binding(id, Req1),
 	Rec = case Id of
 		undefined ->
@@ -41,12 +40,12 @@ rest_init(Req, RecName) ->
 			catch
 				error:badarg -> undefined
 			end,
-			case ssg_data:t_get_by_id(RecName, LookupId) of
+			case lngs_data:t_get_by_id(RecName, LookupId) of
 				{ok, GotRec} -> GotRec;
 				Else -> Else
 			end
 	end,
-	State = #state{type = RecName, record = Rec, session = Session, user = ssg_session:get_user(Session)},
+	State = #state{type = RecName, record = Rec, session = Session, user = lngs_session:get_user(Session)},
 	{ok, Req2, State}.
 
 allowed_methods(Req, #state{record = undefined} = State) ->
@@ -125,7 +124,7 @@ delete_resource(Req, #state{record = undefined} = State) ->
 	{false, Req, State};
 
 delete_resource(Req, State) ->
-	case ssg_data:t_delete(State#state.record) of
+	case lngs_data:t_delete(State#state.record) of
 		{ok, _} ->
 			{true, Req, State};
 		{error, Err} ->
@@ -153,7 +152,7 @@ to_html(Req, State) ->
 	{Bin, Req, State}.
 
 to_json(Req, #state{record = undefined} = State) ->
-	{ok, Recs} = ssg_data:t_search(State#state.type, []),
+	{ok, Recs} = lngs_data:t_search(State#state.type, []),
 	Json = lists:map(fun(Record) ->
 		fix_record_json(Record)
 	end, Recs),
@@ -180,7 +179,7 @@ from_json(Req, State) ->
 	end,
 	case MaybeUpdatedRec of
 		{ok, UpdatedRec} ->
-			{ok, FinalRec} = ssg_data:t_save(UpdatedRec),
+			{ok, FinalRec} = lngs_data:t_save(UpdatedRec),
 			OutJson = jsx:to_json(fix_record_json(FinalRec)),
 			Req2 = cowboy_req:set_resp_body(OutJson, Req1),
 			Return = case State#state.record of
@@ -199,7 +198,7 @@ from_json(Req, State) ->
 make_location(Record) ->
 	Type = element(1, Record),
 	TypeList = atom_to_list(Type),
-	"ssg_rec_" ++ UrlList = TypeList,
+	"lngs_rec_" ++ UrlList = TypeList,
 	IdPart = try Record:id() of
 		N when is_integer(N) ->
 			"/" ++ integer_to_list(N);
@@ -221,7 +220,7 @@ maybe_set_owner(Json, Record) ->
 			Json;
 		true ->
 			OwnerId = Record:owner_id(),
-			{ok, Owner} = ssg_data:t_get_by_id(ssg_rec_user, OwnerId),
+			{ok, Owner} = lngs_data:t_get_by_id(lngs_rec_user, OwnerId),
 			[{owner, Owner:email()} | Json]
 	end.
 

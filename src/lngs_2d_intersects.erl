@@ -1,3 +1,5 @@
+%% @doc Functions the determine if one arbitrary gamerl 2d shape intersects
+%% another.
 -module(lngs_2d_intersects).
 
 -export([intersects/2]).

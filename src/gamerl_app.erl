@@ -1,3 +1,4 @@
+%% @doc Module for starting and stopping the gamerl applicaiton.
 -module(gamerl_app).
 
 -behaviour(application).

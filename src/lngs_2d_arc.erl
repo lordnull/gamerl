@@ -1,3 +1,4 @@
+%% @doc Representation and opertionas for an arc of a circle on a 2d plan.
 -module(lngs_2d_arc).
 
 -ifdef(TEST).
@@ -14,6 +15,9 @@
 -export([end_from_start/1]).
 -export([length/2]).
 
+%% @doc Generate a new arc. An arc can be described by the radius, start angle
+%% and end angle on the circle the arc uses. The center is usful for finding the
+%% start point and end point of the arc.
 -spec new(Center :: lngs_2d_vector:vector(), Radius :: number(), Start :: number(), Diff :: number()) -> arc().
 new(Center, Radius, Start, Diff) ->
 	{Center, Radius, Start, Diff}.
@@ -30,6 +34,7 @@ start({_, _, Start, _}) ->
 diff({_, _, _, Diff}) ->
 	Diff.
 
+%% @doc Return the circle the arc is on.
 circle({Center, Radius, _, _}) ->
 	lngs_2d_circle:new(Center, Radius).
 
@@ -38,14 +43,18 @@ circle({Center, Radius, _, _}) ->
 startv({Center, Radius, Start, _Diff}) ->
 	lngs_2d_vector:mult(lngs_2d_vector:from_angle(Start), Radius).
 
+%% @doc Return the vector of the start position of the arc relative to (0,0).
 startv_origin({Center, _, _, _} = Arc) ->
 	StartV = startv(Arc),
 	lngs_2d_vector:add(Center, StartV).
 
+%% @doc Return the vector at the end position of the arc. This is relative
+%% to the arc's center.
 endv({_Center, Radius, Start, Diff}) ->
 	Angle = Start + Diff,
 	lngs_2d_vector:mult(lngs_2d_vector:from_angle(Angle), Radius).
 
+%% @doc Return the vector of the end position of the arc relative to (0,0).
 endv_origin({Center, _, _, _} = Arc) ->
 	EndV = endv(Arc),
 	lngs_2d_vector:add(Center, EndV).
@@ -57,7 +66,7 @@ end_from_start(Arc) ->
 	EndVO = endv_origin(Arc),
 	lngs_2d_vector:diff(EndVO, StartVO).
 
-%% @doc Like a rector's unit, an arc's unit will have a length of 1 when 
+%% @doc Like a vector's unit, an arc's unit will have a length of 1 when 
 %% measured from the start. This means the only number will actuall change
 %% is the diff. The only exception is if the original diff is 0, in which
 %% case it stays that way.

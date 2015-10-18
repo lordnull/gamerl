@@ -1,7 +1,8 @@
+%% @doc Operatins for cirlces on a 2d plane.
 -module(lngs_2d_circle).
 
 -opaque radius() :: number().
--opaque center() :: ssg_2d_vector:vector().
+-opaque center() :: lngs_2d_vector:vector().
 -opaque circle() :: {center(), radius()}.
 
 -export_type([radius/0, center/0, circle/0]).

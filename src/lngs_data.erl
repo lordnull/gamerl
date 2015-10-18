@@ -1,7 +1,12 @@
+%% @doc Provide a consistent interface to various data backends. Ths actual
+%% use of the module is questionable.
 -module(lngs_data).
 
 -behavior(gen_server).
-
+-callback get_by_id(Type :: atom(), Id :: any()) -> {'ok', tuple()} | {'error', any()}.
+-callback search(Type :: atom(), SearchParams :: [{atom(), any()}]) -> {'ok', [tuple()]}.
+-callback save(Tuple :: tuple()) -> {'ok', tuple()} | {'error', any()}.
+-callback delete(Type :: atom(), Id :: any()) -> {'ok', non_neg_integer()}.
 % api
 -export([
 	start_link/1,
@@ -118,7 +123,7 @@ init(Callback) ->
 handle_call({api, Function, Args}, From, Callback) ->
 	{Pid, _Ref} = erlang:spawn_monitor(fun() ->
 		%lager:debug("Transaction pid ~p start. Callback: ~p; From: ~p; Args: ~p", [self(), Callback, From, Args]),
-		put(ssg_transaction_module, Callback),
+		put(lngs_transaction_module, Callback),
 		Res = apply(Callback, Function, Args),
 		%lager:debug("Replying to ~p with ~p", [From, Res]),
 		gen_server:reply(From, Res)
@@ -175,7 +180,7 @@ maybe_in_transaction(Function, Args) ->
 	apply(Module, Function, Args).
 
 extract_module() ->
-	case get(ssg_transaction_module) of
+	case get(lngs_transaction_module) of
 		undefined ->
 			error(no_transaction);
 		Else ->

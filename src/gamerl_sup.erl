@@ -1,3 +1,7 @@
+%% @doc Top level supervisor for the gamerl application. Supervises the
+%% a pid lookup, dets orm, and session store. While not supervised by this
+%% module, this attempts to start the cowboy listener with the configured
+%% routes.
 -module(gamerl_sup).
 
 -behaviour(supervisor).

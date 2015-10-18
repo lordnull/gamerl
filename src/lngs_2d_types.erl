@@ -1,10 +1,10 @@
-%% @doc Type holder for the 2d structions, allowing rec2json to convert
+%% @doc Type holder for the 2d structures, allowing rec2json to convert
 %% between them nicely.
 
 -module(lngs_2d_types).
 
--opaque vector() :: ssg_2d_vector:vector().
--opaque arc() :: ssg_2d_arc:arc().
+-opaque vector() :: lngs_2d_vector:vector().
+-opaque arc() :: lngs_2d_arc:arc().
 
 -export_type([vector/0, arc/0]).
 
@@ -25,9 +25,9 @@ arc({CenterVector, Radius, Start, Diff} = Arc) ->
 		{<<"radius">>, Radius},
 		{<<"start">>, Start},
 		{<<"diff">>, Diff},
-		{<<"startv">>, element(2, vector(ssg_2d_arc:startv(Arc)))},
-		{<<"endv">>, element(2, vector(ssg_2d_arc:endv(Arc)))},
-		{<<"end_from_start">>, element(2, vector(ssg_2d_arc:end_from_start(Arc)))}
+		{<<"startv">>, element(2, vector(lngs_2d_arc:startv(Arc)))},
+		{<<"endv">>, element(2, vector(lngs_2d_arc:endv(Arc)))},
+		{<<"end_from_start">>, element(2, vector(lngs_2d_arc:end_from_start(Arc)))}
 	]} end catch
 		_:_ ->
 			error
@@ -45,7 +45,7 @@ arc(Json) ->
 			<<"clockwise">> ->
 				clockwise
 		end,
-		Arc = ssg_2d_arc:new(Center, Radius, Start, End, Direction),
+		Arc = lngs_2d_arc:new(Center, Radius, Start, End, Direction),
 		{ok, Arc}
 	end catch
 		_What:_Why ->

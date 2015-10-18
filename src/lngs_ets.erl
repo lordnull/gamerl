@@ -8,7 +8,6 @@
 
 % api
 -export([start_link/1, start_link/2, start_link/3, ets/1]).
-% rpgb_gen_data
 -export([
 	get_by_id/3,
 	save/2,

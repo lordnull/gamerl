@@ -41,7 +41,7 @@ onresponse(Status, _Headers, Data, WsPid, From) ->
 	WsPid ! {reply, From, false, Data}.
 
 init(_, Req, _Routes) ->
-	case ssg_session:get(Req) of
+	case lngs_session:get(Req) of
 		{ok, _Session} ->
 			{upgrade, protocol, cowboy_websocket};
 		{error, notfound} ->
@@ -52,7 +52,7 @@ init(_, Req, _Routes) ->
 	end.
 
 websocket_init(_, Req, Routes) ->
-	BindRes = ssg_util:bind({Req, #state{}}, [
+	BindRes = lngs_util:bind({Req, #state{}}, [
 		fun get_session/1,
 		fun join_battle/1
 	]),
@@ -125,9 +125,9 @@ deatomize(E) ->
 	E.
 
 get_session({Req, State}) ->
-	case ssg_session:get(Req) of
+	case lngs_session:get(Req) of
 		{ok, Session} ->
-			case ssg_session:get_user(Session) of
+			case lngs_session:get_user(Session) of
 				undefined ->
 					{ok, Req2} = cowboy_req:reply(401, [{<<"content-type">>, <<"text/plain">>}], "Not Logged in", Req),
 					{error, Req2};
@@ -142,7 +142,7 @@ get_session({Req, State}) ->
 join_battle({Req, State}) ->
 	{Id, Req2} = cowboy_req:binding(battle_id, Req),
 	User = State#state.user,
-	case ssg_btl_player:join(Id, User:email()) of
+	case lngs_btl_player:join(Id, User:email()) of
 		ok ->
 			{ok, {Req2, State#state{battle_id = Id}}};
 		Else ->
