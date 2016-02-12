@@ -48,7 +48,7 @@ is_authorized(Req, #ctx{action = undefined} = Ctx) ->
 			{true, Req1, Ctx};
 		{_, Req1} ->
 			lager:debug("not authorized, post to me"),
-			{{false, <<"persona">>}, Req1, Ctx}
+			{{false, <<"post">>}, Req1, Ctx}
 	end.
 
 content_types_provided(Req, #ctx{action = conf} = Ctx) ->
@@ -97,39 +97,13 @@ from_json(Req, #ctx{session = Session, action = login} = Ctx) ->
 	{ok, Post, Req1} = cowboy_req:body(Req),
 	Json = jsx:decode(Post),
 	lager:debug("Json term:  ~p", [Json]),
-	Assertion = proplists:get_value(<<"assertion">>, Json),
-	AssertBody = jsx:encode([{<<"assertion">>, Assertion},
-		{<<"audience">>, BaseURL}]),
-	Asserted = ibrowse:send_req("https://verifier.login.persona.org/verify",
-		[{"Content-Type", "application/json"}], post, AssertBody),
-	case Asserted of
-		{ok, "200", _Heads, AssertedBody} ->
-			AssertedJson = jsx:decode(list_to_binary(AssertedBody)),
-			Email = proplists:get_value(<<"email">>, AssertedJson),
-			case proplists:get_value(<<"status">>, AssertedJson) of
-				<<"okay">> ->
-					{ok, Session1} = case lngs_data:t_search(lngs_rec_user, [{email, Email}]) of
-						{ok, []} ->
-							lager:info("Creating new user ~p", [Email]),
-							{ok, Userrec} = lngs_rec_user:new([{email, Email}]),
-							{ok, Userrec1} = lngs_data:t_save(Userrec),
-							lngs_session:set_user(Userrec1, Session);
-						{ok, Userrecs} ->
-							[Userrec | Destroy] = lists:keysort(2, Userrecs),
-							spawn(fun() ->
-								[lngs_data:t_delete(R) || R <- Destroy]
-							end),
-							lager:debug("existant user ~p", [Userrec]),
-							lngs_session:set_user(Userrec, Session)
-					end,
-					Req2 = cowboy_req:set_resp_body(Email, Req1),
-					{true, Req2, Ctx#ctx{session = Session1}};
-				NotOkay ->
-					lager:notice("data returned invalid: ~p", [NotOkay]),
-					{false, Req1, Ctx}
-			end;
-		_ ->
-			lager:info("Verifier failed:  ~p", [Asserted]),
-			{false, Req1, Ctx}
+	Username = proplists:get_value(<<"username">>, Json),
+	Password = proplists:get_value(<<"password">>, Json),
+	case lngs_rec_user_auth:verify(Username, Password) of
+		{error, Wut} ->
+			{false, Req1, Ctx};
+		{ok, UserRec} ->
+			{ok, Session1} = lngs_session:set_user(UserRec, Session),
+			Req2 = cowboy_req:set_resp_body(Username, Req1),
+			{true, Req2, Ctx#ctx{session = Session1}}
 	end.
-
