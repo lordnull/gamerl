@@ -18,10 +18,10 @@ get_maybe_created(Email) ->
 		nomatch ->
 			{error, not_email};
 		_ ->
-			case lngs_data:search(?MODULE, [{email, Email}]) of
+			case lngs_data:t_search(?MODULE, [{email, Email}]) of
 				{ok, []} ->
 					User = #?MODULE{email = Email},
-					lngs_data:save(User);
+					lngs_data:t_save(User);
 				{ok, [User | _]} ->
 					{ok, User}
 			end
