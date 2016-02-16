@@ -220,7 +220,7 @@ handle_cast(_Msg, State) ->
 %% =================================================================
 
 %% @hidden
-handle_info(clear_dead_session, {_, Ets}) ->
+handle_info(clear_dead_sessions, {_, Ets}) ->
 	Now = calendar:local_time(),
 	NowSecs = calendar:datetime_to_gregorian_seconds(Now),
 	QH = qlc:q([Id || {Id, _, _, LastTouch} <- ets:table(Ets),

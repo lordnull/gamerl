@@ -5,6 +5,7 @@
 -export([
 	allowed_methods/2, is_authorized/2,
 	content_types_provided/2, content_types_accepted/2,
+	resource_exists/2, allow_missing_post/2,
 	from_json/2, to_js/2
 ]).
 
@@ -12,7 +13,8 @@ routes() -> [<<"/js/conf.js">>, <<"/auth/login">>, <<"/auth/logout">>].
 
 -record(ctx, {
 	session,
-	action
+	action,
+	auth_rec
 }).
 
 init(Req, _Opts) ->
@@ -24,6 +26,8 @@ init(Req, _Opts) ->
 			login;
 		<<"/auth/logout">> ->
 			logout;
+		<<"/auth/pwr/:reset_token">> ->
+			reset;
 		<<"/js/conf.js">> ->
 			conf;
 		_ ->
@@ -41,6 +45,8 @@ is_authorized(Req, #ctx{action = conf} = Ctx) ->
 	{true, Req, Ctx};
 is_authorized(Req, #ctx{action = Action} = Ctx) when Action =:= login; Action =:= logout ->
 	{true, Req, Ctx};
+is_authorized(Req, #ctx{action = reset} = Ctx) ->
+	{true, Req, Ctx};
 is_authorized(Req, #ctx{action = undefined} = Ctx) ->
 	case cowboy_req:method(Req) of
 		{<<"POST">>, Req1} ->
@@ -50,6 +56,23 @@ is_authorized(Req, #ctx{action = undefined} = Ctx) ->
 			lager:debug("not authorized, post to me"),
 			{{false, <<"post">>}, Req1, Ctx}
 	end.
+
+resource_exists(Req, #ctx{action = reset} = Ctx) ->
+	{Token, Req1} = cowboy_req:binding(reset_token, Req),
+	case Token of
+		undefined ->
+			{false, Req1, Ctx};
+		_ ->
+			case lngs_data:t_search(lngs_rec_user_auth, [{reset_token, Token}]) of
+				{ok, [AuthRec]} ->
+					{true, Req1, Ctx#ctx{auth_rec = AuthRec}};
+				_ ->
+					{false, Req1, Ctx}
+			end
+	end.
+
+allow_missing_post(Req, Ctx) ->
+	{false, Req, Ctx}.
 
 content_types_provided(Req, #ctx{action = conf} = Ctx) ->
 	Types = [{{<<"application">>, <<"x-javascript">>, '*'}, to_js}],
@@ -106,4 +129,12 @@ from_json(Req, #ctx{session = Session, action = login} = Ctx) ->
 			{ok, Session1} = lngs_session:set_user(UserRec, Session),
 			Req2 = cowboy_req:set_resp_body(Username, Req1),
 			{true, Req2, Ctx#ctx{session = Session1}}
-	end.
+	end;
+
+from_json(Req, #ctx{action = reset, auth_rec = AuthRec} = Ctx) ->
+	{ok, Post, Req1} = cowboy_req:body(Req),
+	Json = jsx:decode(Post),
+	Password = proplists:get_value(<<"password">>, Json),
+	{ok, UserRec} = lngs_data:t_get_by_id(lngs_rec_user, AuthRec:id()),
+	{ok, _} = lngs_rec_user_auth:set_password(UserRec, Password),
+	{true, Req1, Ctx}.

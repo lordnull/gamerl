@@ -64,7 +64,8 @@ init([]) ->
 
 		{lngs_data, {lngs_data, start_link, [lngs_data, lngs_dets]}, permanent, 5000, worker, [lngs_data]},
 
-		{lngs_session, {lngs_session, start_link, []}, permanent, 5000, worker, [lngs_sesion]}
-		
+		{lngs_session, {lngs_session, start_link, []}, permanent, 5000, worker, [lngs_sesion]},
+
+		{reset_token_expire, {lngs_sup_bridge, start_link, [lngs_rec_user_auth, start_expire_server, []]}, permanent, 5000, worker, [lngs_sup_bridge]}
 	],
     {ok, { {one_for_one, 5, 10}, Kids} }.
