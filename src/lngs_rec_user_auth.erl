@@ -42,6 +42,14 @@ verify({ok, [UserRec]}, Password) ->
 verify(_, _) ->
 	{error, verification_failed}.
 
+set_password(Username, Password) when is_binary(Username) ->
+	case lngs_data:t_search(lngs_rec_user, [{username, Username}]) of
+		{ok, []} ->
+			{error, not_found};
+		{ok, [UserRec]} ->
+			set_password(UserRec, Password)
+	end;
+
 set_password(UserRec, Password) ->
 	Salt = crypto:rand_bytes(8),
 	Hash = pbkdf2:pbkdf2(?DIGEST_FUNC, Password, Salt, ?STORAGE_INTERATIONS),
