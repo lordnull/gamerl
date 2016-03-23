@@ -42,7 +42,7 @@ init([]) ->
 
 	CompiledDispatch = gamerl:get_compiled_routes(),
 
-	UrlProto = application:get_env(gamerl, url_protocol, https),
+	UrlProto = application:get_env(gamerl, url_protocol, http),
 	ListenProto = application:get_env(gamerl, listen_proto, UrlProto),
 	{ok, _} = case ListenProto of
 		https ->
