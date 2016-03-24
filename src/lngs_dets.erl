@@ -71,12 +71,18 @@ delete(Type, Id) ->
 
 search(Type, Params) ->
   FieldNames = get_field_names(Type),
-  BlankTuple1 = ['_' || _ <- FieldNames],
+  FieldIndexs = indexize(FieldNames, 2),
+  BindAtoms = lists:map(fun({_, N}) ->
+    list_to_atom("$" ++ integer_to_list(N))
+  end, FieldIndexs),
+  BlankTuple1 = [A || A <- BindAtoms],
   BlankTuple2 = [Type | BlankTuple1],
   BlankRec = list_to_tuple(BlankTuple2),
-  FieldIndexs = indexize(FieldNames, 2),
-  Match = build_match(Params, FieldIndexs, BlankRec),
-  case dets:match_object(?dets_table, {{Type, '_'}, Match}) of
+  BoundAtoms = lists:map(fun({_, N}) ->
+    {N, list_to_atom("$" ++ integer_to_list(N))}
+  end, FieldIndexs),
+  Match = build_match(Params, FieldIndexs, BoundAtoms),
+  case dets:select(?dets_table, [{{{Type, '_'}, BlankRec}, Match, ['$_']}]) of
     Objs when is_list(Objs) ->
       Objs1 = [O || {_, O} <- Objs],
       {ok, Objs1};
@@ -182,15 +188,26 @@ indexize([], _Index, Acc) ->
 indexize([Head | Tail], Index, Acc) ->
   indexize(Tail, Index + 1, [{Head, Index} | Acc]).
 
-build_match([], _Indexs, Rec) ->
-  Rec;
-build_match([{Key, Value} | Tail], Indexes, Rec) ->
+build_match(Comparisons, Indexes, BoundAtoms) when is_list(Comparisons) ->
+  lists:foldl(fun(Comparison, MatchAcc) ->
+    case build_match(Comparison, Indexes, BoundAtoms) of
+      {error, _} ->
+        MatchAcc;
+      {ok, Match} ->
+        MatchAcc ++ [Match]
+    end
+  end, [], Comparisons);
+
+build_match({Key, Value}, Indexes, BoundAtoms) ->
+  build_match({Key, '=:=', Value}, Indexes, BoundAtoms);
+
+build_match({Key, Compare, Value}, Indexes, BoundAtoms) ->
   case proplists:get_value(Key, Indexes) of
     undefined ->
-      build_match(Tail, Indexes, Rec);
+      {error, no_key};
     N ->
-      Rec1 = setelement(N, Rec, Value),
-      build_match(Tail, Indexes, Rec1)
+      Atom = proplists:get_value(N, BoundAtoms),
+      {ok, {Compare, Atom, Value}}
   end.
 
 is_current_record(Object) when is_atom(element(1, Object)) ->

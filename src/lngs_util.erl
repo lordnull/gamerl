@@ -37,7 +37,7 @@ make_url() ->
 	make_url([]).
 
 make_url(Path) ->
-	Proto = application:get_env(shipshoot, protocol, https),
+	Proto = application:get_env(shipshoot, protocol, http),
 	Host = application:get_env(shipshoot, hostname, "localhost"),
 	Port = application:get_env(shipshoot, url_port, 3434),
 	make_url(Proto, Host, Port, Path).

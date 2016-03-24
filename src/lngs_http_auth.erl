@@ -27,7 +27,7 @@ routes() ->
 init(Req, _Opts) ->
 	{ok, Session, Req1} = lngs_session:get_or_create(Req),
 	Path = cowboy_req:path(Req1),
-	lager:debug("path: ~p", [Path]),
+	lager:info("path: ~p", [Path]),
 	Action = case Path of
 		<<"/auth/login">> ->
 			login;
@@ -66,6 +66,8 @@ is_authorized(Req, #ctx{action = set_password} = Ctx) ->
 		_User ->
 			{true, Req, Ctx}
 	end;
+is_authorized(Req, #ctx{action = signup} = Ctx) ->
+	{true, Req, Ctx};
 is_authorized(Req, #ctx{action = undefined} = Ctx) ->
 	case cowboy_req:method(Req) of
 		{<<"POST">>, Req1} ->
@@ -182,7 +184,7 @@ from_json(Req, #ctx{action = signup} = Ctx) ->
 			lager:info("Could not do signup since no username was given"),
 			{false, Req1, Ctx};
 		Username ->
-			case proplists:get_value(<<"password">>) of
+			case proplists:get_value(<<"password">>, Json) of
 				undefined ->
 					{false, Req1, Ctx};
 				Password ->
