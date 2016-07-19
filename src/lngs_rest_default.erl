@@ -146,7 +146,7 @@ content_types_accepted(Req, State) ->
 	{Types, Req, State}.
 
 to_html(Req, State) ->
-	Priv = code:priv_dir(shipshoot),
+	Priv = code:priv_dir(gamerl),
 	Index = Priv ++ "/www/index.html",
 	{ok, Bin} = file:read_file(Index),
 	{Bin, Req, State}.
