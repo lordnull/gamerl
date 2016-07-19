@@ -74,7 +74,7 @@ set_cookie(SessionId, Req) ->
 	], Req).
 
 %% @doc Get session data if available based on id or `request_data()'.
--spec get/1 :: (SessionReference :: string() | binary() | request_data()) ->
+-spec get(SessionReference :: string() | binary() | request_data()) ->
 	{'error','notfound'} | {'ok', session()}.
 get(undefined) ->
 	{error, notfound};
@@ -169,7 +169,7 @@ get_value(Key, {_, _, Dict, _}, Default) ->
 
 %% @doc Turns the session tuple into a dictionary.  Also accepts undefined,
 %% meaning a new dictionry is returned.
--spec to_dict/1 :: (Session :: 'undefined' | session()) -> dict:dict().
+-spec to_dict(Session :: 'undefined' | session()) -> dict:dict().
 to_dict(undefined) ->
 	dict:new();
 
@@ -263,7 +263,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% =================================================================
 
 make_uuid() ->
-	make_uuid(crypto:rand_bytes(16)).
+	make_uuid(crypto:strong_rand_bytes(16)).
 
 make_uuid(Bin) when is_binary(Bin) ->
 	Hexstr = lngs_util:bin_to_hexstr(Bin),
