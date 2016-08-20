@@ -33,7 +33,7 @@ testclean:
 	rm -rf .eunit
 
 DIALYZER_APPS = kernel stdlib sasl erts ssl tools runtime_tools crypto inets \
-	xmerl webtool syntax_tools compiler public_key snmp
+	xmerl syntax_tools compiler public_key snmp
 
 include tools.mk
 
