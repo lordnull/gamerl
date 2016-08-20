@@ -5,7 +5,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
--opaque arc() :: {Center :: lngs_2d_vector:vector(), Radius :: number(), Start :: number(), Diff :: number()}.
+-type arc() :: {Center :: lngs_2d_vector:vector(), Radius :: number(), Start :: number(), Diff :: number()}.
 
 -export_type([arc/0]).
 
@@ -40,7 +40,7 @@ circle({Center, Radius, _, _}) ->
 
 %% @doc return the vector at the start position of the arc. This is
 %% relative to the arc's center.
-startv({Center, Radius, Start, _Diff}) ->
+startv({_Center, Radius, Start, _Diff}) ->
 	lngs_2d_vector:mult(lngs_2d_vector:from_angle(Start), Radius).
 
 %% @doc Return the vector of the start position of the arc relative to (0,0).

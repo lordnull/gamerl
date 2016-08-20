@@ -3,8 +3,8 @@
 
 -module(lngs_2d_types).
 
--opaque vector() :: lngs_2d_vector:vector().
--opaque arc() :: lngs_2d_arc:arc().
+-type vector() :: lngs_2d_vector:vector().
+-type arc() :: lngs_2d_arc:arc().
 
 -export_type([vector/0, arc/0]).
 

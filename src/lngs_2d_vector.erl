@@ -1,7 +1,7 @@
 %% @doc Opertions for 2d vectors.
 -module(lngs_2d_vector).
 
--opaque vector() :: {number(), number()}.
+-type vector() :: {number(), number()}.
 
 -export_type([vector/0]).
 
